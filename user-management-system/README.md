@@ -23,11 +23,15 @@ The app allows you to **view, add, edit, and delete users** with a clean and res
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/user-management-system.git
+git clone https://github.com/ra68288/UserManagementSystem.git
 cd user-management-system
 
 # Install dependencies
 npm install
+npm install react-router-dom
+npm install react-confetti
+npm install chart.js react-chartjs-2
+
 
 # Start the development server
 npm start

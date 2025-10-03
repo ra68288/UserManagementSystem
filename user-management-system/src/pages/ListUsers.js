@@ -17,14 +17,30 @@ function ListUsers() {
   const deleteUser = id => setUsers(users.filter(u => u.id !== id));
   const updateUser = (id, updated) => setUsers(users.map(u => (u.id === id ? updated : u)));
 
-  const filtered = users.filter(u =>
-    (u.name && u.name.toLowerCase().includes(search.toLowerCase())) ||
-    (u.email && u.email.toLowerCase().includes(search.toLowerCase()))
+  // --- Advanced Search ---
+  const filtered = users.filter(u => {
+    const searchText = search.toLowerCase();
+    return (
+      u.name?.toLowerCase().includes(searchText) ||
+      u.email?.toLowerCase().includes(searchText) ||
+      u.phone?.toLowerCase().includes(searchText) ||
+      u.website?.toLowerCase().includes(searchText) ||
+      u.company?.name?.toLowerCase().includes(searchText) ||
+      u.company?.catchPhrase?.toLowerCase().includes(searchText) ||
+      u.company?.bs?.toLowerCase().includes(searchText) ||
+      u.address?.street?.toLowerCase().includes(searchText) ||
+      u.address?.suite?.toLowerCase().includes(searchText) ||
+      u.address?.city?.toLowerCase().includes(searchText) ||
+      u.address?.zipcode?.toLowerCase().includes(searchText)
+    );
+  });
+
+  // --- Sort by Name ---
+  const sorted = [...filtered].sort((a, b) => 
+    sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
   );
 
-  const sorted = [...filtered].sort((a, b) => sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
-
-  // Pagination
+  // --- Pagination ---
   const indexOfLast = currentPage * usersPerPage;
   const indexOfFirst = indexOfLast - usersPerPage;
   const currentUsers = sorted.slice(indexOfFirst, indexOfLast);
@@ -37,10 +53,10 @@ function ListUsers() {
       <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", marginBottom: 20 }}>
         <input
           type="text"
-          placeholder="Search by name or email..."
+          placeholder="Search by name, email, phone, company, website, address..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, minWidth: 200, padding: 12, borderRadius: 10, border: "1px solid #cbd5e0", fontSize: 16, marginBottom: 10 }}
+          style={{ flex: 1, minWidth: 250, padding: 12, borderRadius: 10, border: "1px solid #cbd5e0", fontSize: 16, marginBottom: 10 }}
         />
         <button
           onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
