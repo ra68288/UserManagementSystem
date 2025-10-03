@@ -33,13 +33,6 @@ function App() {
     color: "#fff",
   };
 
-  const navLinkStyles = {
-    textDecoration: "none",
-    color: "#fff",
-    padding: "8px 14px",
-    borderRadius: 8,
-  };
-
   const footerStyles = {
     background: darkMode ? "#2d3748" : "#89CFF0",
     color: "#fff",
@@ -55,26 +48,15 @@ function App() {
           <h1>User Management System</h1>
           <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
             <nav style={{ display: "flex", gap: 20 }}>
-              <NavLink to="/" style={navLinkStyles}>Dashboard</NavLink>
-              <NavLink to="/users" style={navLinkStyles}>User List</NavLink>
-              <NavLink to="/add" style={navLinkStyles}>Add User</NavLink>
-              <NavLink to="/details" style={navLinkStyles}>User Details</NavLink>
+              <HoverLink to="/">Dashboard</HoverLink>
+              <HoverLink to="/users">User List</HoverLink>
+              <HoverLink to="/add">Add User</HoverLink>
+              <HoverLink to="/details">User Details</HoverLink>
             </nav>
             {/* DARK MODE TOGGLE */}
-            <button
-              onClick={toggleDarkMode}
-              style={{
-                padding: "8px 14px",
-                borderRadius: 8,
-                border: "none",
-                cursor: "pointer",
-                backgroundColor: darkMode ? "#ecc94b" : "#4a5568",
-                color: darkMode ? "#2d3748" : "#fff",
-                fontWeight: 600,
-              }}
-            >
+            <HoverButton onClick={toggleDarkMode} darkMode={darkMode}>
               {darkMode ? "☀ Light Mode" : "🌙 Dark Mode"}
-            </button>
+            </HoverButton>
           </div>
         </header>
 
@@ -97,12 +79,68 @@ function App() {
   );
 }
 
-function NavLink({ to, children, style }) {
+// Hover button me smooth darken effect
+function HoverButton({ children, onClick, darkMode }) {
+  const [hover, setHover] = useState(false);
+
+  const baseColor = darkMode ? "#ecc94b" : "#4a5568";
+  const hoverColor = darkenColor(baseColor, 30);
+
   return (
-    <Link to={to} style={style}>
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        padding: "8px 14px",
+        borderRadius: 8,
+        border: "none",
+        cursor: "pointer",
+        backgroundColor: hover ? hoverColor : baseColor,
+        color: darkMode ? "#2d3748" : "#fff",
+        fontWeight: 600,
+        transition: "0.25s",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Hover link me smooth effect
+function HoverLink({ to, children }) {
+  const [hover, setHover] = useState(false);
+
+  const baseColor = "#fff";
+  const hoverColor = "#e2e8f0";
+
+  return (
+    <Link
+      to={to}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        textDecoration: "none",
+        color: hover ? hoverColor : baseColor,
+        padding: "8px 14px",
+        borderRadius: 8,
+        transition: "0.25s",
+      }}
+    >
       {children}
     </Link>
   );
+}
+
+// Funksion i thjesht per te errësuar ngjyrën
+function darkenColor(color, amount) {
+  let col = color.replace("#", "");
+  if (col.length === 3) col = col.split("").map(c => c + c).join("");
+  const num = parseInt(col, 16);
+  let r = Math.max(0, ((num >> 16) & 0xff) - amount);
+  let g = Math.max(0, ((num >> 8) & 0xff) - amount);
+  let b = Math.max(0, (num & 0xff) - amount);
+  return `rgb(${r},${g},${b})`;
 }
 
 export default App;

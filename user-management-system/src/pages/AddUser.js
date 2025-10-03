@@ -1,107 +1,187 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-function AddUser({ onAddUser }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [website, setWebsite] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [catchPhrase, setCatchPhrase] = useState("");
-  const [bs, setBs] = useState("");
-  const [street, setStreet] = useState("");
-  const [suite, setSuite] = useState("");
-  const [city, setCity] = useState("");
-  const [zipcode, setZipcode] = useState("");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
+function AddUser({ onAddUser, darkMode }) {
+  const [formData, setFormData] = useState({
+    name:"", email:"", phone:"", website:"",
+    companyName:"", catchPhrase:"", bs:"",
+    street:"", suite:"", city:"", zipcode:"",
+    lat:"", lng:""
+  });
   const [error, setError] = useState("");
-  const [addedUsers, setAddedUsers] = useState([]); // lista e userave te shtuar
+  const [addedUsers, setAddedUsers] = useState([]);
+  const [animations, setAnimations] = useState([]);
+
+  const fields = [
+    "name","email","phone","website",
+    "companyName","catchPhrase","bs",
+    "street","suite","city","zipcode","lat","lng"
+  ];
+
+  const handleChange = (field, value) => setFormData({...formData,[field]:value});
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    setError("");
+    e.preventDefault(); setError("");
 
-    if (!name.trim() || !email.trim()) {
-      setError("Name and Email are required!");
-      return;
+    if(!formData.name.trim() || !formData.email.trim()){
+      setError("Name and Email are required!"); return;
     }
 
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-      setError("Invalid email format!");
-      return;
-    }
+    const emailPattern=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailPattern.test(formData.email)){ setError("Invalid email format!"); return;}
 
-    const newUser = {
+    const newUser={
       id: Date.now(),
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      website: website.trim(),
-      company: {
-        name: companyName.trim(),
-        catchPhrase: catchPhrase.trim(),
-        bs: bs.trim()
+      name:formData.name.trim(),
+      email:formData.email.trim(),
+      phone:formData.phone.trim(),
+      website:formData.website.trim(),
+      company:{
+        name:formData.companyName.trim(),
+        catchPhrase:formData.catchPhrase.trim(),
+        bs:formData.bs.trim()
       },
-      address: {
-        street: street.trim(),
-        suite: suite.trim(),
-        city: city.trim(),
-        zipcode: zipcode.trim(),
-        geo: {
-          lat: lat.trim(),
-          lng: lng.trim()
-        }
+      address:{
+        street:formData.street.trim(),
+        suite:formData.suite.trim(),
+        city:formData.city.trim(),
+        zipcode:formData.zipcode.trim(),
+        geo:{lat:formData.lat.trim(), lng:formData.lng.trim()}
       },
-      createdAt: new Date()
+      createdAt:new Date()
     };
 
-    onAddUser(newUser);           // shtohet ne state globale
-    setAddedUsers([...addedUsers, newUser]); // shtohet ne listen lokale
-
-    // pastro input-et
-    setName(""); setEmail(""); setPhone(""); setWebsite("");
-    setCompanyName(""); setCatchPhrase(""); setBs("");
-    setStreet(""); setSuite(""); setCity(""); setZipcode("");
-    setLat(""); setLng("");
+    onAddUser(newUser);
+    setAddedUsers([newUser,...addedUsers]);
+    setAnimations([newUser.id,...animations]);
+    setFormData(fields.reduce((acc,f)=>({...acc,[f]:""}),{}));
   };
 
-  return (
-    <div style={{ padding: 25, borderRadius: 14, background: "#f0f4f8", marginBottom: 30 }}>
-      <h3 style={{ marginBottom: 20 }}>Add New User</h3>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-        <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        <input placeholder="Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
-        <input placeholder="Company Name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-        <input placeholder="Catch Phrase" value={catchPhrase} onChange={(e) => setCatchPhrase(e.target.value)} />
-        <input placeholder="BS" value={bs} onChange={(e) => setBs(e.target.value)} />
-        <input placeholder="Street" value={street} onChange={(e) => setStreet(e.target.value)} />
-        <input placeholder="Suite" value={suite} onChange={(e) => setSuite(e.target.value)} />
-        <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} />
-        <input placeholder="Zipcode" value={zipcode} onChange={(e) => setZipcode(e.target.value)} />
-        <input placeholder="Lat" value={lat} onChange={(e) => setLat(e.target.value)} />
-        <input placeholder="Lng" value={lng} onChange={(e) => setLng(e.target.value)} />
-        <button type="submit">Add User</button>
-      </form>
-      {error && <div style={{ color: "red", marginTop: 10 }}>{error}</div>}
+  useEffect(()=>{
+    if(animations.length>0){
+      const timer = setTimeout(()=>setAnimations(animations.slice(1)),600);
+      return ()=>clearTimeout(timer);
+    }
+  },[animations]);
 
-      {/* LISTA E USERAVE TE SHTUAR */}
-      {addedUsers.length > 0 && (
-        <div style={{ marginTop: 25 }}>
-          <h4>Recently Added Users:</h4>
-          {addedUsers.map((u) => (
-            <div key={u.id} style={{ padding: 12, marginBottom: 10, background: "#fff", borderRadius: 8, boxShadow: "0 2px 6px rgba(0,0,0,0.05)" }}>
-              <strong>{u.name}</strong> ({u.email})<br />
-              Phone: {u.phone} | Website: {u.website}<br />
-              Company: {u.company.name} | CatchPhrase: {u.company.catchPhrase} | BS: {u.company.bs}<br />
-              Address: {u.address.street}, {u.address.suite}, {u.address.city}, {u.address.zipcode}<br />
-              Geo: lat {u.address.geo.lat}, lng {u.address.geo.lng}
-            </div>
-          ))}
+  const inputStyle = {
+    padding:"14px 16px",
+    borderRadius:12,
+    border:`1px solid ${darkMode?"#4a5568":"#cbd5e0"}`,
+    minWidth:150,
+    flex:1,
+    background: darkMode?"#2d3748":"#fff",
+    color: darkMode?"#e2e8f0":"#1a202c",
+    outline:"none",
+    transition:"all 0.3s ease",
+    boxShadow: darkMode?"0 2px 4px rgba(255,255,255,0.1)":"0 2px 4px rgba(0,0,0,0.1)",
+    fontWeight:500
+  };
+
+  const buttonStyle = {
+    padding:"14px 26px",
+    borderRadius:16,
+    border:"none",
+    background: "linear-gradient(135deg, #3182ce, #63b3ed)",
+    color:"#fff",
+    fontWeight:600,
+    cursor:"pointer",
+    overflow:"hidden",
+    position:"relative",
+    transition:"all 0.3s ease, transform 0.2s",
+    boxShadow:"0 6px 20px rgba(0,0,0,0.25)"
+  };
+
+  const cardStyle=(isNew, index)=>({
+    padding:22,
+    marginBottom:18,
+    borderRadius:18,
+    background: darkMode?"#2d3748":"#fff",
+    color: darkMode?"#e2e8f0":"#1a202c",
+    boxShadow: darkMode?"0 8px 26px rgba(255,255,255,0.05)":"0 8px 26px rgba(0,0,0,0.12)",
+    transform:isNew?"translateY(-40px) scale(0.9)":"translateY(0) scale(1)",
+    opacity:isNew?0:1,
+    animation:isNew?`fadeSlideIn 0.6s forwards ${index*0.05}s`:"none",
+    cursor:"pointer",
+    transition:"all 0.4s ease",
+    border:`1px solid ${darkMode?"#4a5568":"#e2e8f0"}`
+  });
+
+  return (
+    <div style={{
+      padding:36,
+      borderRadius:20,
+      background: darkMode?"#1a202c":"#f7fafc",
+      marginBottom:36,
+      transition:"background 0.3s"
+    }}>
+      <h3 style={{marginBottom:28, color: darkMode?"#e2e8f0":"#1a202c", fontSize:24, fontWeight:700}}>
+        ➕ Add New User
+      </h3>
+      <form onSubmit={handleSubmit} style={{display:"flex", flexWrap:"wrap", gap:16}}>
+        {fields.map((f,i)=>(
+          <input key={i} placeholder={f.charAt(0).toUpperCase()+f.slice(1)}
+            value={formData[f]}
+            onChange={e=>handleChange(f,e.target.value)}
+            style={inputStyle}
+            onFocus={e=>e.target.style.boxShadow="0 0 0 3px #63b3ed"}
+            onBlur={e=>e.target.style.boxShadow= darkMode?"0 2px 4px rgba(255,255,255,0.1)":"0 2px 4px rgba(0,0,0,0.1)"}
+          />
+        ))}
+        <button
+          type="submit"
+          style={buttonStyle}
+          onMouseEnter={e=>e.target.style.transform="scale(1.07)"}
+          onMouseLeave={e=>e.target.style.transform="scale(1)"}
+        >
+          Add User
+          <span style={{
+            position:"absolute", top:0,left:0,width:"100%",height:"100%",
+            background:"rgba(255,255,255,0.2)",
+            borderRadius:"inherit", transform:"scaleX(0)", transition:"transform 0.4s",
+            pointerEvents:"none"
+          }} className="ripple"></span>
+        </button>
+      </form>
+      {error && <div style={{color:"#e53e3e", marginTop:14, fontWeight:600}}>{error}</div>}
+
+      {addedUsers.length>0 && (
+        <div style={{marginTop:40, maxHeight:450, overflowY:"auto", paddingRight:8}}>
+          <h4 style={{color:darkMode?"#e2e8f0":"#1a202c", marginBottom:16, fontWeight:600}}>Recently Added Users:</h4>
+          {addedUsers.map((u,idx)=>{
+            const isNew=animations.includes(u.id);
+            return (
+              <div
+                key={u.id}
+                style={cardStyle(isNew,idx)}
+                onMouseEnter={e=>e.currentTarget.style.boxShadow="0 14px 36px rgba(0,0,0,0.35)"}
+                onMouseLeave={e=>e.currentTarget.style.boxShadow= darkMode
+                  ?"0 8px 26px rgba(255,255,255,0.05)"
+                  :"0 8px 26px rgba(0,0,0,0.12)"}
+              >
+                <strong>{u.name}</strong> ({u.email})<br/>
+                📞 {u.phone} | 🌐 {u.website}<br/>
+                🏢 {u.company.name} | {u.company.catchPhrase} | {u.company.bs}<br/>
+                🏠 {u.address.street}, {u.address.suite}, {u.address.city}, {u.address.zipcode}<br/>
+                🌍 lat {u.address.geo.lat}, lng {u.address.geo.lng}
+              </div>
+            )
+          })}
         </div>
       )}
+
+      <style>{`
+        @keyframes fadeSlideIn{
+          0%{opacity:0; transform: translateY(-40px) scale(0.9);}
+          100%{opacity:1; transform: translateY(0) scale(1);}
+        }
+        ::-webkit-scrollbar{
+          width:6px;
+        }
+        ::-webkit-scrollbar-thumb{
+          background: ${darkMode?"#4a5568":"#cbd5e0"};
+          border-radius:3px;
+        }
+      `}</style>
     </div>
   );
 }

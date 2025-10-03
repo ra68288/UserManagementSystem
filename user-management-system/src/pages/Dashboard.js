@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Confetti from "react-confetti";
 
-function Dashboard() {
-  // --- DARK/LIGHT MODE ---
-  const [darkMode, setDarkMode] = useState(false);
-  const toggleDarkMode = () => setDarkMode(!darkMode);
-
-  // --- STATE ---
+function Dashboard({ users: globalUsers, darkMode: isDarkMode }) {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState("name");
@@ -14,20 +9,25 @@ function Dashboard() {
   const [successMsg, setSuccessMsg] = useState("");
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // --- FETCH USERS ---
+  // --- SYNC WITH GLOBAL USERS ---
   useEffect(() => {
-    fetch("https://jsonplaceholder.typicode.com/users")
-      .then((res) => res.json())
-      .then((data) =>
-        setUsers(
-          data.map((u) => ({
-            ...u,
-            createdAt: new Date(),
-            vip: Math.random() > 0.7, // Random VIP
-          }))
-        )
-      );
-  }, []);
+    if (globalUsers.length) {
+      setUsers(globalUsers);
+    } else {
+      // Fetch initial users if global state is empty
+      fetch("https://jsonplaceholder.typicode.com/users")
+        .then((res) => res.json())
+        .then((data) =>
+          setUsers(
+            data.map((u) => ({
+              ...u,
+              createdAt: new Date(),
+              vip: Math.random() > 0.7,
+            }))
+          )
+        );
+    }
+  }, [globalUsers]);
 
   // --- ADD USER ---
   const addUser = (user) => {
@@ -36,9 +36,7 @@ function Dashboard() {
     setShowConfetti(true);
     setTimeout(() => setSuccessMsg(""), 3000);
     setTimeout(() => setShowConfetti(false), 3000);
-    document.getElementById("user-list").scrollIntoView({
-      behavior: "smooth",
-    });
+    document.getElementById("user-list")?.scrollIntoView({ behavior: "smooth" });
   };
 
   // --- DELETE / UPDATE ---
@@ -97,13 +95,7 @@ function Dashboard() {
         createdAt: new Date(),
         vip: Math.random() > 0.7,
       });
-      setName("");
-      setEmail("");
-      setPhone("");
-      setCompany("");
-      setWebsite("");
-      setAddress("");
-      setError("");
+      setName(""); setEmail(""); setPhone(""); setCompany(""); setWebsite(""); setAddress(""); setError("");
     };
 
     return (
@@ -116,93 +108,32 @@ function Dashboard() {
           marginBottom: 25,
           padding: 20,
           borderRadius: 14,
-          background:
-            darkMode
-              ? "linear-gradient(135deg, #2d3748, #4a5568)"
-              : "linear-gradient(135deg, #edf2f7, #e2e8f0)",
+          background: isDarkMode
+            ? "linear-gradient(135deg, #2d3748, #4a5568)"
+            : "linear-gradient(135deg, #edf2f7, #e2e8f0)",
           boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-          color: darkMode ? "#fff" : "#000",
+          color: isDarkMode ? "#fff" : "#000",
         }}
       >
-        {/* --- INPUT FIELDS --- */}
-        <input
-          type="text"
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{
-            flex: 1,
-            minWidth: 180,
-            padding: 12,
-            borderRadius: 8,
-            border: "1px solid #cbd5e0",
-          }}
-        />
-        <input
-          type="email"
-          placeholder="Email Address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{
-            flex: 1,
-            minWidth: 220,
-            padding: 12,
-            borderRadius: 8,
-            border: "1px solid #cbd5e0",
-          }}
-        />
-        <input
-          type="text"
-          placeholder="Phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          style={{
-            flex: 1,
-            minWidth: 150,
-            padding: 12,
-            borderRadius: 8,
-            border: "1px solid #cbd5e0",
-          }}
-        />
-        <input
-          type="text"
-          placeholder="Company"
-          value={company}
-          onChange={(e) => setCompany(e.target.value)}
-          style={{
-            flex: 1,
-            minWidth: 150,
-            padding: 12,
-            borderRadius: 8,
-            border: "1px solid #cbd5e0",
-          }}
-        />
-        <input
-          type="text"
-          placeholder="Website"
-          value={website}
-          onChange={(e) => setWebsite(e.target.value)}
-          style={{
-            flex: 1,
-            minWidth: 150,
-            padding: 12,
-            borderRadius: 8,
-            border: "1px solid #cbd5e0",
-          }}
-        />
-        <input
-          type="text"
-          placeholder="Address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          style={{
-            flex: 1,
-            minWidth: 150,
-            padding: 12,
-            borderRadius: 8,
-            border: "1px solid #cbd5e0",
-          }}
-        />
+        {["Full Name","Email","Phone","Company","Website","Address"].map((placeholder,i)=>(
+          <input
+            key={i}
+            type={placeholder.includes("Email") ? "email":"text"}
+            placeholder={placeholder}
+            value={[name,email,phone,company,website,address][i]}
+            onChange={(e)=>{
+              const setters = [setName,setEmail,setPhone,setCompany,setWebsite,setAddress];
+              setters[i](e.target.value);
+            }}
+            style={{
+              flex:1,
+              minWidth:150,
+              padding:12,
+              borderRadius:8,
+              border: "1px solid #cbd5e0"
+            }}
+          />
+        ))}
         <button
           type="submit"
           style={{
@@ -215,23 +146,12 @@ function Dashboard() {
             cursor: "pointer",
             transition: "0.25s",
           }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#2b6cb0")}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#3182ce")}
+          onMouseOver={(e)=>e.currentTarget.style.backgroundColor="#2b6cb0"}
+          onMouseOut={(e)=>e.currentTarget.style.backgroundColor="#3182ce"}
         >
           ➕ Add User
         </button>
-        {error && (
-          <span
-            style={{
-              width: "100%",
-              marginTop: 8,
-              color: "#e53e3e",
-              fontWeight: 500,
-            }}
-          >
-            {error}
-          </span>
-        )}
+        {error && <span style={{ width:"100%", marginTop:8, color:"#e53e3e", fontWeight:500 }}>{error}</span>}
       </form>
     );
   }
@@ -240,11 +160,11 @@ function Dashboard() {
     const [editing, setEditing] = useState(false);
     const [editName, setEditName] = useState(user.name);
     const [editEmail, setEditEmail] = useState(user.email);
-    const [isHover, setIsHover] = useState(false);
+    const [hover, setHover] = useState(false);
 
     function saveUpdate() {
       if (!editName || !editEmail) return;
-      onUpdate(user.id, { ...user, name: editName, email: editEmail });
+      onUpdate(user.id, {...user, name: editName, email: editEmail});
       setEditing(false);
     }
 
@@ -253,144 +173,54 @@ function Dashboard() {
     }
 
     const baseCard = {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: 18,
-      marginBottom: 14,
-      borderRadius: 12,
-      backgroundColor: user.vip
-        ? "#fffbe6"
-        : darkMode
-        ? "#2d3748"
-        : "#fff",
-      boxShadow: "0 6px 14px rgba(0,0,0,0.06)",
-      transition: "all 0.25s ease",
-      cursor: "pointer",
-      position: "relative",
+      display:"flex",
+      justifyContent:"space-between",
+      alignItems:"center",
+      padding:18,
+      marginBottom:14,
+      borderRadius:12,
+      backgroundColor: user.vip ? "#fffbe6" : isDarkMode ? "#2d3748" : "#fff",
+      boxShadow:"0 6px 14px rgba(0,0,0,0.06)",
+      transition:"all 0.25s ease",
+      cursor:"pointer",
+      position:"relative",
     };
 
     const hoverCard = {
-      transform: "translateY(-4px)",
+      transform:"translateY(-4px)",
       background: user.vip
         ? "linear-gradient(90deg, #fffbe6, #fff3c4)"
-        : darkMode
-        ? "#4a5568"
-        : "linear-gradient(90deg, #f7fafc, #edf2f7)",
-      boxShadow: "0 10px 24px rgba(0,0,0,0.12)",
+        : isDarkMode
+          ? "#4a5568"
+          : "linear-gradient(90deg, #f7fafc, #edf2f7)",
+      boxShadow:"0 10px 24px rgba(0,0,0,0.12)",
     };
 
     return (
       <div
-        style={isHover ? { ...baseCard, ...hoverCard } : baseCard}
-        onMouseOver={() => setIsHover(true)}
-        onMouseOut={() => setIsHover(false)}
+        style={hover ? {...baseCard,...hoverCard} : baseCard}
+        onMouseOver={()=>setHover(true)}
+        onMouseOut={()=>setHover(false)}
       >
         {editing ? (
           <>
-            <input
-              type="text"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              style={{
-                padding: 10,
-                borderRadius: 8,
-                border: "1px solid #cbd5e0",
-                marginRight: 8,
-              }}
-            />
-            <input
-              type="email"
-              value={editEmail}
-              onChange={(e) => setEditEmail(e.target.value)}
-              style={{
-                padding: 10,
-                borderRadius: 8,
-                border: "1px solid #cbd5e0",
-                marginRight: 8,
-              }}
-            />
-            <button
-              onClick={saveUpdate}
-              style={{
-                padding: "8px 12px",
-                borderRadius: 8,
-                border: "none",
-                backgroundColor: "#38a169",
-                color: "#fff",
-                marginRight: 6,
-                cursor: "pointer",
-              }}
-            >
-              Save
-            </button>
-            <button
-              onClick={() => setEditing(false)}
-              style={{
-                padding: "8px 12px",
-                borderRadius: 8,
-                border: "none",
-                backgroundColor: "#e53e3e",
-                color: "#fff",
-                cursor: "pointer",
-              }}
-            >
-              Cancel
-            </button>
+            <input type="text" value={editName} onChange={e=>setEditName(e.target.value)} style={{padding:10,borderRadius:8,border:"1px solid #cbd5e0",marginRight:8}}/>
+            <input type="email" value={editEmail} onChange={e=>setEditEmail(e.target.value)} style={{padding:10,borderRadius:8,border:"1px solid #cbd5e0",marginRight:8}}/>
+            <button onClick={saveUpdate} style={{padding:"8px 12px",borderRadius:8,border:"none",backgroundColor:"#38a169",color:"#fff",marginRight:6,cursor:"pointer"}}>Save</button>
+            <button onClick={()=>setEditing(false)} style={{padding:"8px 12px",borderRadius:8,border:"none",backgroundColor:"#e53e3e",color:"#fff",cursor:"pointer"}}>Cancel</button>
           </>
         ) : (
           <>
-            <div style={{ fontSize: 16, fontWeight: 500, color: darkMode ? "#e2e8f0" : "#2d3748" }}>
-              {user.name}{" "}
-              <span style={{ fontWeight: 400, color: "#718096" }}>({user.email})</span>
-              <div style={{ fontSize: 14, color: "#718096" }}>
+            <div style={{ fontSize:16, fontWeight:500, color: isDarkMode ? "#e2e8f0" : "#2d3748"}}>
+              {user.name} <span style={{fontWeight:400,color:"#718096"}}>({user.email})</span>
+              <div style={{fontSize:14,color:"#718096"}}>
                 🏢 {user.company?.name}
-                {user.vip && (
-                  <span
-                    style={{
-                      marginLeft: 8,
-                      padding: "2px 6px",
-                      backgroundColor: "#ecc94b",
-                      color: "#2d3748",
-                      borderRadius: 6,
-                      fontWeight: 600,
-                      fontSize: 12,
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-                    }}
-                  >
-                    VIP
-                  </span>
-                )}
+                {user.vip && <span style={{marginLeft:8,padding:"2px 6px",backgroundColor:"#ecc94b",color:"#2d3748",borderRadius:6,fontWeight:600,fontSize:12,boxShadow:"0 2px 6px rgba(0,0,0,0.2)"}}>VIP</span>}
               </div>
             </div>
             <div>
-              <button
-                onClick={() => setEditing(true)}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 8,
-                  border: "none",
-                  backgroundColor: "#3182ce",
-                  color: "#fff",
-                  marginRight: 6,
-                  cursor: "pointer",
-                }}
-              >
-                Edit
-              </button>
-              <button
-                onClick={confirmDelete}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 8,
-                  border: "none",
-                  backgroundColor: "#e53e3e",
-                  color: "#fff",
-                  cursor: "pointer",
-                }}
-              >
-                Delete
-              </button>
+              <button onClick={()=>setEditing(true)} style={{padding:"6px 12px",borderRadius:8,border:"none",backgroundColor:"#3182ce",color:"#fff",marginRight:6,cursor:"pointer"}}>Edit</button>
+              <button onClick={confirmDelete} style={{padding:"6px 12px",borderRadius:8,border:"none",backgroundColor:"#e53e3e",color:"#fff",cursor:"pointer"}}>Delete</button>
             </div>
           </>
         )}
@@ -398,151 +228,67 @@ function Dashboard() {
     );
   }
 
-  // --- INSIGHTS DATA ---
   const totalUsers = users.length;
   const newToday = todayUsers.length;
-  const vipUsers = users.filter(u => u.vip).length;
-  const avgUsersPerCompany = (totalUsers / (new Set(users.map(u => u.company?.name))).size || 1).toFixed(1);
+  const vipUsers = users.filter(u=>u.vip).length;
+  const avgUsersPerCompany = (totalUsers / (new Set(users.map(u=>u.company?.name))).size || 1).toFixed(1);
 
   return (
-    <div
-      style={{
-        maxWidth: 980,
-        margin: "40px auto",
-        padding: 20,
-        fontFamily: "Segoe UI, Arial, sans-serif",
-        backgroundColor: darkMode ? "#1a202c" : "#f7fafc",
-        minHeight: "100vh",
-        transition: "0.3s",
-      }}
-    >
+    <div style={{
+      maxWidth:980,
+      margin:"40px auto",
+      padding:20,
+      fontFamily:"Segoe UI, Arial, sans-serif",
+      backgroundColor:isDarkMode?"#1a202c":"#f7fafc",
+      minHeight:"100vh",
+      transition:"0.3s"
+    }}>
       {showConfetti && <Confetti />}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
-        <button
-          onClick={toggleDarkMode}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 8,
-            border: "none",
-            backgroundColor: darkMode ? "#ecc94b" : "#4a5568",
-            color: darkMode ? "#2d3748" : "#fff",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          {darkMode ? "☀ Light Mode" : "🌙 Dark Mode"}
-        </button>
-      </div>
-
-      <h2 style={{ marginBottom: 25, color: darkMode ? "#e2e8f0" : "#2d3748", fontSize: 28 }}>
-        📊 User Management Dashboard
-      </h2>
+      <h2 style={{marginBottom:25,color:isDarkMode?"#e2e8f0":"#2d3748",fontSize:28}}>📊 User Management Dashboard</h2>
 
       <UserForm onAddUser={addUser} />
 
-      {successMsg && (
-        <div
-          style={{
-            marginBottom: 15,
-            padding: 12,
-            borderRadius: 8,
-            backgroundColor: "#c6f6d5",
-            color: "#22543d",
-            fontWeight: 600,
-            textAlign: "center",
-          }}
-        >
-          {successMsg}
-        </div>
-      )}
+      {successMsg && <div style={{marginBottom:15,padding:12,borderRadius:8,backgroundColor:"#c6f6d5",color:"#22543d",fontWeight:600,textAlign:"center"}}>{successMsg}</div>}
 
-      {/* --- INSIGHTS CARDS --- */}
-      <div style={{
-        display: "flex",
-        gap: 20,
-        flexWrap: "wrap",
-        marginBottom: 30,
-        opacity: 0,
-        animation: "fadeIn 0.7s forwards"
-      }}>
+      {/* INSIGHTS CARDS */}
+      <div style={{display:"flex",gap:20,flexWrap:"wrap",marginBottom:30}}>
         {[{label:"Total Users", value:totalUsers, color:"#4299e1"},
           {label:"New Today", value:newToday, color:"#38a169"},
           {label:"VIP Users", value:vipUsers, color:"#ed64a6"},
-          {label:"Avg/Company", value:avgUsersPerCompany, color:"#f6ad55"}].map((insight,i)=>(
+          {label:"Avg/Company", value:avgUsersPerCompany, color:"#f6ad55"}].map((card,i)=>(
           <div key={i} style={{
-            flex:1,
-            minWidth:200,
-            padding:20,
-            borderRadius:16,
-            backgroundColor:insight.color,
-            color:"#fff",
-            fontWeight:600,
-            fontSize:20,
-            textAlign:"center",
+            flex:1,minWidth:200,padding:20,borderRadius:16,
+            backgroundColor:card.color,color:"#fff",fontWeight:600,fontSize:20,textAlign:"center",
             boxShadow:"0 8px 20px rgba(0,0,0,0.1)",
             transform:"translateY(20px)",
             animation:`slideUp 0.6s ${i*0.15}s forwards`
           }}>
-            {insight.label}: {insight.value}
+            {card.label}: {card.value}
           </div>
         ))}
       </div>
 
-      {/* --- SEARCH + SORT */}
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 22 }}>
-        <input
-          type="text"
-          placeholder="🔍 Search by name, email, or company..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: 12,
-            flex: 1,
-            minWidth: 250,
-            borderRadius: 10,
-            border: "1px solid #cbd5e0",
-            fontSize: 16,
-          }}
-        />
-        <select
-          value={sortField}
-          onChange={(e) => setSortField(e.target.value)}
-          style={{ padding: 10, borderRadius: 8, border: "1px solid #cbd5e0", fontSize: 16 }}
-        >
+      {/* SEARCH + SORT */}
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:22}}>
+        <input type="text" placeholder="🔍 Search by name, email, or company..." value={search} onChange={e=>setSearch(e.target.value)} style={{padding:12,flex:1,minWidth:250,borderRadius:10,border:"1px solid #cbd5e0",fontSize:16}}/>
+        <select value={sortField} onChange={e=>setSortField(e.target.value)} style={{padding:10,borderRadius:8,border:"1px solid #cbd5e0",fontSize:16}}>
           <option value="name">Sort by Name</option>
           <option value="email">Sort by Email</option>
           <option value="company">Sort by Company</option>
         </select>
-        <button
-          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 8,
-            border: "none",
-            backgroundColor: "#3182ce",
-            color: "#fff",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          {sortOrder === "asc" ? "⬆ Ascending" : "⬇ Descending"}
+        <button onClick={()=>setSortOrder(sortOrder==="asc"?"desc":"asc")} style={{padding:"10px 16px",borderRadius:8,border:"none",backgroundColor:"#3182ce",color:"#fff",fontWeight:600,cursor:"pointer"}}>
+          {sortOrder==="asc"?"⬆ Ascending":"⬇ Descending"}
         </button>
       </div>
 
-      {/* --- USER LIST --- */}
-      <div id="user-list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
-        {sorted.map((u) => (
-          <UserItem key={u.id} user={u} onDelete={deleteUser} onUpdate={updateUser} />
-        ))}
+      {/* USER LIST */}
+      <div id="user-list" style={{display:"grid",gridTemplateColumns:"1fr",gap:14}}>
+        {sorted.map(u=><UserItem key={u.id} user={u} onDelete={deleteUser} onUpdate={updateUser}/>)}
       </div>
 
-      {/* --- ANIMATIONS --- */}
       <style>{`
         @keyframes slideUp {
           to { transform: translateY(0); opacity:1; }
-        }
-        @keyframes fadeIn {
-          to { opacity:1; }
         }
       `}</style>
     </div>
