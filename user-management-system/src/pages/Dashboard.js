@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Confetti from "react-confetti";
-import { Pie } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-
-ChartJS.register(ArcElement, Tooltip, Legend);
 
 function Dashboard() {
   // --- DARK/LIGHT MODE ---
@@ -79,33 +70,6 @@ function Dashboard() {
       new Date(u.createdAt).toDateString() === new Date().toDateString()
   );
 
-  // --- PIE CHART DATA ---
-  const companyCounts = {};
-  users.forEach((u) => {
-    const name = u.company?.name || "Unknown";
-    companyCounts[name] = (companyCounts[name] || 0) + 1;
-  });
-
-  const pieData = {
-    labels: Object.keys(companyCounts),
-    datasets: [
-      {
-        label: "# of Users",
-        data: Object.values(companyCounts),
-        backgroundColor: [
-          "#4299e1",
-          "#38a169",
-          "#f6ad55",
-          "#ed64a6",
-          "#ecc94b",
-          "#9f7aea",
-          "#f56565",
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
   // --- COMPONENTS ---
   function UserForm({ onAddUser }) {
     const [name, setName] = useState("");
@@ -160,6 +124,7 @@ function Dashboard() {
           color: darkMode ? "#fff" : "#000",
         }}
       >
+        {/* --- INPUT FIELDS --- */}
         <input
           type="text"
           placeholder="Full Name"
@@ -433,6 +398,12 @@ function Dashboard() {
     );
   }
 
+  // --- INSIGHTS DATA ---
+  const totalUsers = users.length;
+  const newToday = todayUsers.length;
+  const vipUsers = users.filter(u => u.vip).length;
+  const avgUsersPerCompany = (totalUsers / (new Set(users.map(u => u.company?.name))).size || 1).toFixed(1);
+
   return (
     <div
       style={{
@@ -463,64 +434,6 @@ function Dashboard() {
         </button>
       </div>
 
-      {/* --- DASHBOARD CARDS --- */}
-      <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 30 }}>
-        <div
-          style={{
-            flex: 1,
-            minWidth: 200,
-            padding: 20,
-            borderRadius: 16,
-            background: darkMode
-              ? "linear-gradient(90deg, #4299e1, #63b3ed)"
-              : "linear-gradient(90deg, #4299e1, #63b3ed)",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 20,
-            textAlign: "center",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
-          }}
-        >
-          👥 Total Users: {users.length}
-        </div>
-        <div
-          style={{
-            flex: 1,
-            minWidth: 200,
-            padding: 20,
-            borderRadius: 16,
-            background: darkMode
-              ? "linear-gradient(90deg, #38a169, #48bb78)"
-              : "linear-gradient(90deg, #38a169, #48bb78)",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 20,
-            textAlign: "center",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
-          }}
-        >
-          🆕 New Today: {todayUsers.length}
-        </div>
-        <div
-          style={{
-            flex: 1,
-            minWidth: 200,
-            padding: 20,
-            borderRadius: 16,
-            background: darkMode
-              ? "linear-gradient(90deg, #ed64a6, #f687b3)"
-              : "linear-gradient(90deg, #ed64a6, #f687b3)",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 20,
-            textAlign: "center",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
-          }}
-        >
-          🏆 VIP Users: {users.filter((u) => u.vip).length}
-        </div>
-      </div>
-
       <h2 style={{ marginBottom: 25, color: darkMode ? "#e2e8f0" : "#2d3748", fontSize: 28 }}>
         📊 User Management Dashboard
       </h2>
@@ -543,7 +456,39 @@ function Dashboard() {
         </div>
       )}
 
-      {/* SEARCH + SORT */}
+      {/* --- INSIGHTS CARDS --- */}
+      <div style={{
+        display: "flex",
+        gap: 20,
+        flexWrap: "wrap",
+        marginBottom: 30,
+        opacity: 0,
+        animation: "fadeIn 0.7s forwards"
+      }}>
+        {[{label:"Total Users", value:totalUsers, color:"#4299e1"},
+          {label:"New Today", value:newToday, color:"#38a169"},
+          {label:"VIP Users", value:vipUsers, color:"#ed64a6"},
+          {label:"Avg/Company", value:avgUsersPerCompany, color:"#f6ad55"}].map((insight,i)=>(
+          <div key={i} style={{
+            flex:1,
+            minWidth:200,
+            padding:20,
+            borderRadius:16,
+            backgroundColor:insight.color,
+            color:"#fff",
+            fontWeight:600,
+            fontSize:20,
+            textAlign:"center",
+            boxShadow:"0 8px 20px rgba(0,0,0,0.1)",
+            transform:"translateY(20px)",
+            animation:`slideUp 0.6s ${i*0.15}s forwards`
+          }}>
+            {insight.label}: {insight.value}
+          </div>
+        ))}
+      </div>
+
+      {/* --- SEARCH + SORT */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 22 }}>
         <input
           type="text"
@@ -584,17 +529,22 @@ function Dashboard() {
         </button>
       </div>
 
-      {/* PIE CHART */}
-      <div style={{ maxWidth: 400, marginBottom: 25 }}>
-        <Pie data={pieData} />
-      </div>
-
-      {/* USER LIST */}
+      {/* --- USER LIST --- */}
       <div id="user-list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
         {sorted.map((u) => (
           <UserItem key={u.id} user={u} onDelete={deleteUser} onUpdate={updateUser} />
         ))}
       </div>
+
+      {/* --- ANIMATIONS --- */}
+      <style>{`
+        @keyframes slideUp {
+          to { transform: translateY(0); opacity:1; }
+        }
+        @keyframes fadeIn {
+          to { opacity:1; }
+        }
+      `}</style>
     </div>
   );
 }
