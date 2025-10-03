@@ -18,7 +18,7 @@ function App() {
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         {/* HEADER */}
         <header style={{ background: "#89CFF0", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", color: "white" }}>
-          <h1>User Dashboard</h1>
+          <h1>User Management System</h1>
           <nav style={{ display: "flex", gap: 20 }}>
             <NavLink to="/">Dashboard</NavLink>
             <NavLink to="/users">User List</NavLink>
