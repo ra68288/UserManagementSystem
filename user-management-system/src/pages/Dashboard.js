@@ -221,6 +221,7 @@ function Dashboard() {
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
     fetch("https://jsonplaceholder.typicode.com/users")
@@ -228,7 +229,13 @@ function Dashboard() {
       .then((data) => setUsers(data.map((u) => ({ ...u, createdAt: new Date() }))));
   }, []);
 
-  const addUser = (user) => setUsers([user, ...users]);
+  const addUser = (user) => {
+    setUsers([user, ...users]);
+    setSuccessMsg(`✅ User "${user.name}" added successfully!`);
+    setTimeout(() => setSuccessMsg(""), 3000);
+    document.getElementById("user-list").scrollIntoView({ behavior: "smooth" });
+  };
+
   const deleteUser = (id) => setUsers(users.filter((u) => u.id !== id));
   const updateUser = (id, updated) => setUsers(users.map((u) => (u.id === id ? updated : u)));
 
@@ -295,6 +302,22 @@ function Dashboard() {
 
       <UserForm onAddUser={addUser} />
 
+      {successMsg && (
+        <div
+          style={{
+            marginBottom: 15,
+            padding: 12,
+            borderRadius: 8,
+            backgroundColor: "#c6f6d5",
+            color: "#22543d",
+            fontWeight: 600,
+            textAlign: "center",
+          }}
+        >
+          {successMsg}
+        </div>
+      )}
+
       <input
         type="text"
         placeholder="🔍 Search by name, email, or company..."
@@ -338,7 +361,7 @@ function Dashboard() {
       </div>
 
       {/* User List */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
+      <div id="user-list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
         {sorted.map((u) => (
           <UserItem key={u.id} user={u} onDelete={deleteUser} onUpdate={updateUser} />
         ))}
