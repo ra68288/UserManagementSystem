@@ -1,79 +1,94 @@
 import React from "react";
-import users from "../data/users"; // importo listën e userave
+import users from "../data/users";
 
 function UserDetails() {
   return (
     <div
       style={{
-        maxWidth: 900,
+        maxWidth: 1200,
         margin: "40px auto",
         padding: 20,
-        borderRadius: 16,
-        background: "#f7fafc",
+        borderRadius: 20,
         fontFamily: "Segoe UI, Arial, sans-serif",
+        color: "#fff",
+        background: "linear-gradient(-45deg, #6a11cb, #2575fc, #ff6a00, #00c9ff)",
+        backgroundSize: "400% 400%",
+        animation: "gradientBG 12s ease infinite",
       }}
     >
+      <style>
+        {`
+          @keyframes gradientBG {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+          }
+        `}
+      </style>
+
       <h2
         style={{
-          marginBottom: 30,
-          fontSize: 28,
-          fontWeight: 700,
-          color: "#2d3748",
           textAlign: "center",
+          fontSize: 34,
+          fontWeight: "bold",
+          marginBottom: 30,
+          textShadow: "0 0 15px rgba(0,0,0,0.6)",
         }}
       >
-        👥 User Details (All Users)
+        👥 User Details
       </h2>
 
-      {users.map((user) => (
-        <div
-          key={user.id}
-          style={{
-            marginBottom: 30,
-            padding: 20,
-            borderRadius: 12,
-            background: "white",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          }}
-        >
-          <h3 style={{ marginBottom: 15, fontSize: 22, color: "#2c5282" }}>
-            {user.name} (ID: {user.id})
-          </h3>
+      <div
+        style={{
+          display: "flex",
+          overflowX: "auto",
+          gap: 20,
+          paddingBottom: 10,
+        }}
+      >
+        {users.map((user) => (
+          <div
+            key={user.id}
+            style={{
+              minWidth: 320,
+              padding: 20,
+              borderRadius: 14,
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(8px)",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.4)",
+              transition: "transform 0.3s ease",
+            }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.transform = "translateY(-8px) scale(1.05)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.transform = "translateY(0) scale(1)")
+            }
+          >
+            <h3
+              style={{
+                fontSize: 22,
+                marginBottom: 15,
+                color: "#90cdf4",
+                borderBottom: "1px solid rgba(255,255,255,0.2)",
+                paddingBottom: 8,
+              }}
+            >
+              {user.name} <span style={{ color: "#ccc" }}>(ID: {user.id})</span>
+            </h3>
 
-          <div style={{ marginBottom: 8 }}>
-            <strong>Username:</strong> {user.username}
+            <div>👤 <strong>Username:</strong> {user.username}</div>
+            <div>✉️ <strong>Email:</strong> {user.email}</div>
+            <div>📞 <strong>Phone:</strong> {user.phone}</div>
+            <div>🌍 <strong>Website:</strong> {user.website}</div>
+            <div>🏠 <strong>Address:</strong> {user.address.street}, {user.address.city}</div>
+            <div>📍 <strong>Geo:</strong> Lat {user.address.geo.lat}, Lng {user.address.geo.lng}</div>
+            <div>🏢 <strong>Company:</strong> {user.company.name}</div>
+            <div>💡 <strong>CatchPhrase:</strong> {user.company.catchPhrase}</div>
+            <div>⚙️ <strong>BS:</strong> {user.company.bs}</div>
           </div>
-          <div style={{ marginBottom: 8 }}>
-            <strong>Email:</strong> {user.email}
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <strong>Phone:</strong> {user.phone}
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <strong>Website:</strong> {user.website}
-          </div>
-
-          <div style={{ marginBottom: 8 }}>
-            <strong>Address:</strong>{" "}
-            {user.address.street}, {user.address.suite}, {user.address.city},{" "}
-            {user.address.zipcode}
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <strong>Geo:</strong> Lat {user.address.geo.lat}, Lng{" "}
-            {user.address.geo.lng}
-          </div>
-
-          <div style={{ marginBottom: 8 }}>
-            <strong>Company:</strong> {user.company.name}
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <strong>CatchPhrase:</strong> {user.company.catchPhrase}
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <strong>BS:</strong> {user.company.bs}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
